@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
+@ActiveProfiles("test")
 class BookControllerTest {
 
     @Autowired
@@ -57,11 +59,24 @@ class BookControllerTest {
 
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
+                        .content(objectMapper.writeValueAsString(requestDTO))
+                        .header("X-User-Role", "ADMIN"))  // ✅ add this line
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.title", is("Domain-Driven Design")));
     }
+
+    @Test
+    void testSaveBook_ForbiddenForNonAdmin() throws Exception {
+        mockMvc.perform(post("/api/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO))
+                        .header("X-User-Role", "USER"))  // ❌ Not admin
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error", containsString("Access denied: Only ADMINs can add new books.")));
+    }
+
+
 
     @Test
     void testSaveBook_Duplicate() throws Exception {
@@ -70,10 +85,13 @@ class BookControllerTest {
 
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
+                        .content(objectMapper.writeValueAsString(requestDTO))
+                        .header("X-User-Role", "ADMIN"))  // ✅ add this line
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error", containsString("already exists")));
     }
+
+
 
     @Test
     void testSaveBook_InvalidData() throws Exception {
@@ -82,7 +100,8 @@ class BookControllerTest {
 
         mockMvc.perform(post("/api/books")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+                        .header("X-User-Role", "ADMIN"))  // ✅ add this line
                 .andExpect(status().isBadRequest());
     }
 
@@ -182,15 +201,27 @@ class BookControllerTest {
     void testDeleteBook_Success() throws Exception {
         doNothing().when(bookService).deleteBook(1L);
 
-        mockMvc.perform(delete("/api/books/1"))
+        mockMvc.perform(delete("/api/books/1")
+                        .header("X-User-Role", "ADMIN")) // ✅ add header
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void testDeleteBook_ForbiddenForNonAdmin() throws Exception {
+        mockMvc.perform(delete("/api/books/1")
+                        .header("X-User-Role", "USER")) // ❌ Not admin
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error", containsString("Access denied: Only ADMINs can delete books.")));
+    }
+
+
 
     @Test
     void testDeleteBook_NotFound() throws Exception {
         Mockito.doThrow(new BookNotFoundException(99L)).when(bookService).deleteBook(99L);
 
-        mockMvc.perform(delete("/api/books/99"))
+        mockMvc.perform(delete("/api/books/99")
+                        .header("X-User-Role", "ADMIN")) // ✅ add header
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error", containsString("not found")));
     }

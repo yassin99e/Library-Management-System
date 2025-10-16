@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 public class BookMsApplication {
@@ -15,6 +16,7 @@ public class BookMsApplication {
     }
 
     @Bean
+    @Profile("!test")
     CommandLineRunner initDatabase(BookRepository bookRepository) {
         return args -> {
 
@@ -32,14 +34,6 @@ public class BookMsApplication {
                             .title("Clean Code")
                             .author("Robert C. Martin")
                             .availableCopies(3)
-                            .build()
-            );
-
-            bookRepository.save(
-                    Book.builder()
-                            .title("Design Patterns")
-                            .author("Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides")
-                            .availableCopies(4)
                             .build()
             );
 
