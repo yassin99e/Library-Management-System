@@ -79,4 +79,10 @@ public class BookController {
     public ResponseEntity<List<BookResponseDTO>> searchByAuthor(@RequestParam String keyword) {
         return ResponseEntity.ok(bookService.searchByAuthor(keyword));
     }
+
+    @GetMapping("/by-ids")
+    public ResponseEntity<List<BookResponseDTO>> getBooksByIds(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok(bookService.getBooksByIds(ids));
+    }
+
 }

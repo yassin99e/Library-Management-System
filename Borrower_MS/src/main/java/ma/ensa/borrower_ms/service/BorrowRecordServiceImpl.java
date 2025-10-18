@@ -1,10 +1,9 @@
 package ma.ensa.borrower_ms.service;
 
 import lombok.RequiredArgsConstructor;
+import ma.ensa.borrower_ms.dto.*;
 import ma.ensa.borrower_ms.exception.*;
 import ma.ensa.borrower_ms.feign.BookClient;
-import ma.ensa.borrower_ms.dto.BookResponseDTO;
-import ma.ensa.borrower_ms.dto.BorrowRecordResponseDTO;
 import ma.ensa.borrower_ms.entity.BorrowRecord;
 import ma.ensa.borrower_ms.mapper.BorrowRecordMapper;
 import ma.ensa.borrower_ms.repository.BorrowRecordRepository;
@@ -13,6 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,4 +86,53 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
         return borrowRecordMapper.toResponseDTO(saved);
     }
+
+
+    @Override
+    public List<BorrowResponseDTO> findCurrentlyBorrowedBooksByUser(Long borrowerId) {
+        userRepository.findById(borrowerId)
+                .orElseThrow(() -> new UserNotFoundException());
+
+        List<BorrowedBookDTO> borrowedBookDTOS = borrowRecordRepository.findCurrentlyBorrowedBookIdsByUser(borrowerId);
+        return combineBorrowedBooksWithDetails(borrowedBookDTOS);
+    }
+
+    @Override
+    public List<BorrowResponseDTO> findReturnedBorrowedBookIdsByUser(Long borrowerId) {
+        userRepository.findById(borrowerId)
+                .orElseThrow(() -> new UserNotFoundException());
+
+        List<BorrowedBookDTO> borrowedBookDTOS = borrowRecordRepository.findReturnedBorrowedBookIdsByUser(borrowerId);
+        return combineBorrowedBooksWithDetails(borrowedBookDTOS);
+    }
+
+
+    private List<BorrowResponseDTO> combineBorrowedBooksWithDetails(List<BorrowedBookDTO> borrowedBooks) {
+        List<Long> bookIds = borrowedBooks.stream()
+                .map(BorrowedBookDTO::getBookId)
+                .toList();
+
+        if (bookIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, BookResponseDTO> bookMap = bookClient.getBooksByIds(bookIds).stream()
+                .collect(Collectors.toMap(BookResponseDTO::getId, Function.identity()));
+
+        return borrowedBooks.stream()
+                .map(borrowedBook -> {
+                    BookResponseDTO book = bookMap.get(borrowedBook.getBookId());
+                    return BorrowResponseDTO.builder()
+                            .bookId(book.getId())
+                            .title(book.getTitle())
+                            .author(book.getAuthor())
+                            .availableCopies(book.getAvailableCopies())
+                            .borrowDate(borrowedBook.getBorrowDate())
+                            .returnDate(borrowedBook.getReturnDate())
+                            .build();
+                })
+                .toList();
+    }
+
+
 }

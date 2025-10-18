@@ -25,4 +25,7 @@ public interface BookService {
     List<BookResponseDTO> searchByTitle(String keyword);
 
     List<BookResponseDTO> searchByAuthor(String keyword);
+
+    List<BookResponseDTO> getBooksByIds(List<Long> ids);
+
 }

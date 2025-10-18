@@ -95,4 +95,9 @@ public class BookServiceImpl implements BookService {
         List<Book> books = bookRepository.findByAuthorContainingIgnoreCase(keyword);
         return bookMapper.toResponseDTOList(books);
     }
+
+    @Override
+    public List<BookResponseDTO> getBooksByIds(List<Long> ids) {
+        return bookMapper.toResponseDTOList(bookRepository.findByIdIn(ids));
+    }
 }

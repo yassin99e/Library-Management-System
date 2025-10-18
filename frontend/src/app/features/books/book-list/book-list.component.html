@@ -1,0 +1,120 @@
+<!-- src/app/features/books/book-list/book-list.component.html -->
+
+<div class="book-list-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>Library Books</span>
+    <span class="spacer"></span>
+    <button mat-raised-button color="accent" *ngIf="isAdmin" (click)="navigateToAddBook()">
+      <mat-icon>add</mat-icon>
+      Add Book
+    </button>
+  </mat-toolbar>
+
+  <!-- Search Section -->
+  <mat-card class="search-card">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search books</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Enter search term">
+        <mat-icon matPrefix>search</mat-icon>
+        <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="clearSearch()">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="search-type">
+        <mat-label>Search by</mat-label>
+        <mat-select [(ngModel)]="searchType">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="title">Title</mat-option>
+          <mat-option value="author">Author</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="onSearch()">
+        Search
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <!-- Books Table -->
+  <mat-card class="table-card" *ngIf="!isLoading">
+    <table mat-table [dataSource]="filteredBooks" class="books-table">
+
+      <!-- Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+        <td mat-cell *matCellDef="let book">
+          <div class="title-cell">
+            {{ book.title }}
+            <mat-icon *ngIf="book.isBorrowedByCurrentUser" class="borrowed-icon"
+                      matTooltip="You have borrowed this book">
+              bookmark
+            </mat-icon>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Author Column -->
+      <ng-container matColumnDef="author">
+        <th mat-header-cell *matHeaderCellDef>Author</th>
+        <td mat-cell *matCellDef="let book">{{ book.author }}</td>
+      </ng-container>
+
+      <!-- Available Copies Column -->
+      <ng-container matColumnDef="availableCopies">
+        <th mat-header-cell *matHeaderCellDef>Available Copies</th>
+        <td mat-cell *matCellDef="let book">
+          <mat-chip [class.unavailable]="book.availableCopies === 0">
+            {{ book.availableCopies }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let book">
+          <!-- USER: Borrow/Return buttons -->
+          <div *ngIf="!isAdmin" class="action-buttons">
+            <button mat-raised-button color="primary"
+                    *ngIf="!book.isBorrowedByCurrentUser"
+                    (click)="borrowBook(book)"
+                    [disabled]="book.availableCopies === 0">
+              <mat-icon>book</mat-icon>
+              Borrow
+            </button>
+
+            <button mat-raised-button color="accent"
+                    *ngIf="book.isBorrowedByCurrentUser"
+                    (click)="returnBook(book)">
+              <mat-icon>assignment_return</mat-icon>
+              Return
+            </button>
+          </div>
+
+          <!-- ADMIN: Delete button only -->
+          <button mat-raised-button color="warn"
+                  *ngIf="isAdmin"
+                  (click)="deleteBook(book)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div class="no-data" *ngIf="filteredBooks.length === 0">
+      <mat-icon>menu_book</mat-icon>
+      <p>No books found</p>
+    </div>
+  </mat-card>
+</div>
