@@ -2,9 +2,13 @@ package ma.ensa.borrower_ms.service;
 
 import lombok.RequiredArgsConstructor;
 import ma.ensa.borrower_ms.dto.*;
+import ma.ensa.borrower_ms.events.BookBorrowedEvent;
+import ma.ensa.borrower_ms.events.BookReturnedEvent;
+import ma.ensa.borrower_ms.events.BookStockOverEvent;
 import ma.ensa.borrower_ms.exception.*;
 import ma.ensa.borrower_ms.feign.BookClient;
 import ma.ensa.borrower_ms.entity.BorrowRecord;
+import ma.ensa.borrower_ms.kafka.BorrowEventProducer;
 import ma.ensa.borrower_ms.mapper.BorrowRecordMapper;
 import ma.ensa.borrower_ms.repository.BorrowRecordRepository;
 import ma.ensa.borrower_ms.repository.UserRepository;
@@ -25,6 +29,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
     private final UserRepository userRepository;
     private final BookClient bookClient;
     private final BorrowRecordMapper borrowRecordMapper;
+    private final BorrowEventProducer borrowEventProducer;
 
 
     @Override
@@ -64,6 +69,30 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
         BorrowRecord saved = borrowRecordRepository.save(record);
 
+        // We'll implement the events here :
+
+        // Book Borrowed event :
+        BookBorrowedEvent bookBorrowedEvent = BookBorrowedEvent.builder()
+                .bookId(bookId)
+                .userId(borrowerId)
+                .borrowDate(saved.getBorrowDate())
+                .build();
+
+        // we will send the event to the producer :
+        borrowEventProducer.sendBookBorrowedEvent(bookBorrowedEvent);
+
+
+        // Book Stock Over Event :
+        if (book.getAvailableCopies() == 1){
+            BookStockOverEvent stockOverEvent = BookStockOverEvent.builder()
+                    .bookId(bookId)
+                    .title(book.getTitle())
+                    .author(book.getAuthor())
+                    .availableCopies(book.getAvailableCopies()-1)
+                    .build();
+            borrowEventProducer.sendBookStockOverEvent(stockOverEvent);
+        }
+
         return borrowRecordMapper.toResponseDTO(saved);
     }
 
@@ -83,6 +112,16 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
         // 3. Increment available copies
         bookClient.incrementAvailableCopies(bookId);
+
+        // Implement the Book Return Event :
+        BookReturnedEvent bookReturnedEvent = BookReturnedEvent.builder()
+                .bookId(saved.getBookId())
+                .userId(saved.getBorrower().getId())
+                .borrowDate(saved.getBorrowDate())
+                .returnDate(saved.getReturnDate())
+                .build();
+
+        borrowEventProducer.sendBookReturnedEvent(bookReturnedEvent);
 
         return borrowRecordMapper.toResponseDTO(saved);
     }

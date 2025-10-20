@@ -8,6 +8,8 @@ import ma.ensa.book_ms.Repository.BookRepository;
 import ma.ensa.book_ms.Exceptions.BookNotFoundException;
 import ma.ensa.book_ms.Exceptions.DuplicateBookException;
 import ma.ensa.book_ms.Exceptions.NoAvailableCopiesException;
+import ma.ensa.book_ms.events.BookCreatedEvent;
+import ma.ensa.book_ms.kafka.BookProducer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +21,12 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final BookProducer bookProducer;
 
-    public BookServiceImpl(BookRepository bookRepository, BookMapper bookMapper) {
+    public BookServiceImpl(BookRepository bookRepository, BookMapper bookMapper,BookProducer bookProducer) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
+        this.bookProducer = bookProducer;
     }
 
     @Override
@@ -32,6 +36,15 @@ public class BookServiceImpl implements BookService {
         }
         Book book = bookMapper.toEntity(bookRequestDTO);
         Book saved = bookRepository.save(book);
+
+        // publish event to Kafka
+        BookCreatedEvent event = BookCreatedEvent.builder().
+                title(saved.getTitle()).
+                author(saved.getAuthor())
+                .availableCopies(saved.getAvailableCopies())
+                .build();
+        bookProducer.sendBookCreatedEvent(event);
+
         return bookMapper.toResponseDTO(saved);
     }
 

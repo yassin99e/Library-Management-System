@@ -10,13 +10,14 @@
         <module name="Discovery_Service" />
         <module name="API-GW" />
       </profile>
-      <profile name="Annotation profile for Borrower_MS" enabled="true">
+      <profile name="Annotation profile for Notification_MS" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.40/lombok-1.18.40.jar" />
         </processorPath>
+        <module name="Notification_MS" />
         <module name="Borrower_MS" />
         <module name="Book_MS" />
       </profile>
@@ -28,6 +29,7 @@
       <module name="Book_MS" options="-parameters" />
       <module name="Borrower_MS" options="-parameters" />
       <module name="Discovery_Service" options="-parameters" />
+      <module name="Notification_MS" options="-parameters" />
     </option>
   </component>
 </project>

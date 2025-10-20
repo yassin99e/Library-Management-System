@@ -15,7 +15,7 @@ public class BookMsApplication {
         SpringApplication.run(BookMsApplication.class, args);
     }
 
-    @Bean
+    /*@Bean
     @Profile("!test")
     CommandLineRunner initDatabase(BookRepository bookRepository) {
         return args -> {
@@ -37,8 +37,25 @@ public class BookMsApplication {
                             .build()
             );
 
+            bookRepository.save(
+                    Book.builder()
+                            .title("Design Patterns")
+                            .author("Adelwahab Naji")
+                            .availableCopies(20)
+                            .build()
+            );
+
+            bookRepository.save(
+                    Book.builder()
+                            .title("Generative AI")
+                            .author("Mohammed Youssfi")
+                            .availableCopies(10)
+                            .build()
+            );
+
 
             System.out.println("✅ Database initialized with sample books");
         };
-    }
+    }*/
+
 }

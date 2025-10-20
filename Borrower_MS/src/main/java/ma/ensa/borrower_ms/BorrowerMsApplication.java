@@ -20,7 +20,7 @@ public class BorrowerMsApplication {
         SpringApplication.run(BorrowerMsApplication.class, args);
     }
 
-    @Bean
+    /*@Bean
     @Profile("!test")
     CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
@@ -46,7 +46,7 @@ public class BorrowerMsApplication {
             System.out.println("✅ Database initialized with Normal User and Admin succesfully!!");
 
         };
-    }
+    }*/
 
 
 }
