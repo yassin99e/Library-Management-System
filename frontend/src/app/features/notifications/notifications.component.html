@@ -1,0 +1,93 @@
+<!-- src/app/features/notifications/notifications.component.html -->
+
+<div class="notifications-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>Notifications</span>
+    <span class="spacer"></span>
+    <button mat-raised-button color="accent" (click)="markAllAsRead()"
+            [disabled]="isLoading || filteredNotifications.length === 0">
+      <mat-icon>done_all</mat-icon>
+      Mark All as Read
+    </button>
+    <button mat-raised-button (click)="deleteAllRead()"
+            [disabled]="isLoading">
+      <mat-icon>delete_sweep</mat-icon>
+      Delete Read
+    </button>
+  </mat-toolbar>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <div class="filters-container">
+      <mat-form-field appearance="outline">
+        <mat-label>Show</mat-label>
+        <mat-select [(ngModel)]="selectedFilter" (selectionChange)="onFilterChange()">
+          <mat-option value="all">All Notifications</mat-option>
+          <mat-option value="unread">Unread Only</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="selectedType" (selectionChange)="onTypeFilterChange()">
+          <mat-option value="all">All Types</mat-option>
+          <mat-option *ngFor="let type of notificationTypes" [value]="type">
+            {{ type.replace('_', ' ') }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-icon-button (click)="loadNotifications()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="notifications-list" *ngIf="!isLoading">
+    <div *ngIf="filteredNotifications.length === 0" class="no-notifications">
+      <mat-icon>notifications_none</mat-icon>
+      <p>No notifications found</p>
+    </div>
+
+    <mat-card *ngFor="let notification of filteredNotifications"
+              class="notification-card"
+              [class.unread]="!notification.seen"
+              (click)="markAsRead(notification)">
+
+      <div class="notification-content">
+        <div class="notification-icon" [ngClass]="getNotificationColor(notification.type)">
+          <mat-icon>{{ getNotificationIcon(notification.type) }}</mat-icon>
+        </div>
+
+        <div class="notification-details">
+          <div class="notification-header">
+            <mat-chip [class]="getNotificationColor(notification.type) + '-chip'">
+              {{ notification.type.replace('_', ' ') }}
+            </mat-chip>
+            <span class="notification-time">{{ formatDate(notification.createdAt) }}</span>
+          </div>
+
+          <p class="notification-message">{{ notification.message }}</p>
+
+          <div class="notification-status" *ngIf="!notification.seen">
+            <mat-icon class="unread-indicator">fiber_manual_record</mat-icon>
+            <span>New</span>
+          </div>
+        </div>
+
+        <div class="notification-actions">
+          <button mat-icon-button (click)="deleteNotification(notification); $event.stopPropagation()"
+                  matTooltip="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>

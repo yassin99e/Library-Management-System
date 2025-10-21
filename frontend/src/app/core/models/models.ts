@@ -83,3 +83,21 @@ export interface AuthState {
   role: string | null;
   isAuthenticated: boolean;
 }
+
+// ==================== Notification Models ====================
+export enum NotificationType {
+  BOOK_CREATED = 'BOOK_CREATED',
+  BOOK_BORROWED = 'BOOK_BORROWED',
+  BOOK_RETURNED = 'BOOK_RETURNED',
+  BOOK_STOCK_OVER = 'BOOK_STOCK_OVER'
+}
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  message: string;
+  createdAt: string; // ISO date string
+  seen: boolean;
+}
+

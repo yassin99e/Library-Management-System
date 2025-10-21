@@ -24,6 +24,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import {MatBadge, MatBadgeModule} from '@angular/material/badge';
 
 // Routing
 import { AppRoutingModule } from './app-routing.module';
@@ -35,6 +36,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { BookListComponent } from './features/books/book-list/book-list.component';
 import { AddBookComponent } from './features/books/add-book/add-book.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { NotificationsComponent } from './features/notifications/notifications.component';
 
 // Interceptors
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -47,7 +49,8 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
     RegisterComponent,
     BookListComponent,
     AddBookComponent,
-    ProfileComponent
+    ProfileComponent,
+    NotificationsComponent
   ],
   imports: [
     BrowserModule,
@@ -73,7 +76,8 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
     MatMenuModule,
     MatTabsModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatBadge
   ],
   providers: [
     provideHttpClient(

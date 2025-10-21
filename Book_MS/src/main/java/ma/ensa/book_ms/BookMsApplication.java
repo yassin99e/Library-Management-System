@@ -15,7 +15,7 @@ public class BookMsApplication {
         SpringApplication.run(BookMsApplication.class, args);
     }
 
-    /*@Bean
+    @Bean
     @Profile("!test")
     CommandLineRunner initDatabase(BookRepository bookRepository) {
         return args -> {
@@ -56,6 +56,6 @@ public class BookMsApplication {
 
             System.out.println("✅ Database initialized with sample books");
         };
-    }*/
+    }
 
 }

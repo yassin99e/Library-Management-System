@@ -16,6 +16,17 @@
       Add Book
     </button>
 
+    <!-- Notifications Button with Badge -->
+    <button mat-icon-button (click)="navigateToNotifications()" matTooltip="Notifications">
+      <mat-icon
+        [matBadge]="(unreadCount$ | async) || 0"
+        [matBadgeHidden]="(unreadCount$ | async) === 0"
+        matBadgeColor="warn"
+        matBadgeSize="small">
+        notifications
+      </mat-icon>
+    </button>
+
     <!-- User Menu -->
     <button mat-button [matMenuTriggerFor]="userMenu">
       <mat-icon>account_circle</mat-icon>
@@ -27,6 +38,16 @@
       <button mat-menu-item [routerLink]="['/profile']">
         <mat-icon>person</mat-icon>
         <span>Profile</span>
+      </button>
+      <button mat-menu-item (click)="navigateToNotifications()">
+        <mat-icon
+          [matBadge]="(unreadCount$ | async) || 0"
+          [matBadgeHidden]="(unreadCount$ | async) === 0"
+          matBadgeColor="warn"
+          matBadgeSize="small">
+          notifications
+        </mat-icon>
+        <span>Notifications</span>
       </button>
       <button mat-menu-item disabled>
         <mat-icon>settings</mat-icon>

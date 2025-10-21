@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ma.ensa.borrower_ms.dto.*;
+import ma.ensa.borrower_ms.entity.Role;
 import ma.ensa.borrower_ms.exception.ForbiddenException;
 import ma.ensa.borrower_ms.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -79,4 +80,17 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/ids/users")
+    public ResponseEntity<List<Long>> GetUsersIds(){
+        return ResponseEntity.ok(userService.findIdsByRole(Role.USER));
+    }
+
+    @GetMapping("/ids/admins")
+    public ResponseEntity<List<Long>> GetAdminIds(){
+        return ResponseEntity.ok(userService.findIdsByRole(Role.ADMIN));
+    }
+
+
 }

@@ -7,6 +7,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { BookListComponent } from './features/books/book-list/book-list.component';
 import { AddBookComponent } from './features/books/add-book/add-book.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { NotificationsComponent } from './features/notifications/notifications.component';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
@@ -27,6 +28,11 @@ const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notifications',
+    component: NotificationsComponent,
     canActivate: [authGuard]
   },
   { path: '**', redirectTo: '/login' }
