@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/API-GW/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Book_MS/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Borrower_MS/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Config_Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Discovery_Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Notification_MS/src/main/java" charset="UTF-8" />
   </component>

@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Discovery_Service" />
         <module name="API-GW" />
+        <module name="Config_Service" />
       </profile>
       <profile name="Annotation profile for Notification_MS" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -28,6 +29,7 @@
       <module name="API-GW" options="-parameters" />
       <module name="Book_MS" options="-parameters" />
       <module name="Borrower_MS" options="-parameters" />
+      <module name="Config_Service" options="-parameters" />
       <module name="Discovery_Service" options="-parameters" />
       <module name="Notification_MS" options="-parameters" />
     </option>

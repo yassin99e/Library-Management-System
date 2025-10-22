@@ -12,6 +12,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BookMicroserviceDownException.class)
+    public ResponseEntity<Map<String, String>> handleMicroserviceDown(BookMicroserviceDownException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleBorrowerNotFound(UserNotFoundException ex) {
         Map<String, String> error = new HashMap<>();

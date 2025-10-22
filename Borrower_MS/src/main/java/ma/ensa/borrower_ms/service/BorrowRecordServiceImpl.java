@@ -49,7 +49,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         try {
             book = bookClient.getBookById(bookId);
         } catch (Exception e) {
-            throw new BookNotFoundException(bookId);
+            throw new BookMicroserviceDownException();
         }
 
         // 3. Check availability
@@ -58,7 +58,11 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         }
 
         // 4. Decrement available copies
-        bookClient.decrementAvailableCopies(bookId);
+        try{
+            bookClient.decrementAvailableCopies(bookId);
+        }catch (Exception e){
+            throw new BookMicroserviceDownException();
+        }
 
         // 5. Save record
         BorrowRecord record = BorrowRecord.builder()
@@ -106,12 +110,20 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
                 .findByBorrowerIdAndBookIdAndReturnDateIsNull(borrowerId, bookId)
                 .orElseThrow(() -> new BorrowRecordNotFoundException(borrowerId, bookId));
 
+
+        try{
+            // 3. Increment available copies
+            bookClient.incrementAvailableCopies(bookId);
+        }catch (Exception e){
+            throw new BookMicroserviceDownException();
+        }
+
+
+
         // 2. Mark as returned
         record.setReturnDate(LocalDate.from(LocalDateTime.now()));
         BorrowRecord saved = borrowRecordRepository.save(record);
 
-        // 3. Increment available copies
-        bookClient.incrementAvailableCopies(bookId);
 
         // Implement the Book Return Event :
         BookReturnedEvent bookReturnedEvent = BookReturnedEvent.builder()
@@ -155,8 +167,15 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
             return List.of();
         }
 
-        Map<Long, BookResponseDTO> bookMap = bookClient.getBooksByIds(bookIds).stream()
-                .collect(Collectors.toMap(BookResponseDTO::getId, Function.identity()));
+
+        Map<Long, BookResponseDTO> bookMap;
+        try{
+            bookMap = bookClient.getBooksByIds(bookIds).stream()
+                    .collect(Collectors.toMap(BookResponseDTO::getId, Function.identity()));
+        }catch(Exception e){
+            throw new BookMicroserviceDownException();
+        }
+
 
         return borrowedBooks.stream()
                 .map(borrowedBook -> {
