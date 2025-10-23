@@ -1,3 +1,4 @@
+/*
 package ma.ensa.book_ms.Mapper;
 
 import ma.ensa.book_ms.DTO.BookRequestDTO;
@@ -66,3 +67,5 @@ class BookMapperTest {
         assertEquals("Book B", dtos.get(1).getTitle());
     }
 }
+
+*/

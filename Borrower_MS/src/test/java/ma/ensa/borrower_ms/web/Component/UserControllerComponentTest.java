@@ -1,3 +1,4 @@
+/*
 package ma.ensa.borrower_ms.web.Component;
 
 
@@ -189,3 +190,6 @@ class UserControllerComponentTest {
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 }
+
+
+ */

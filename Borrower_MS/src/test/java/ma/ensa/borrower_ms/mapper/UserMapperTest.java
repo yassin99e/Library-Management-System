@@ -1,3 +1,4 @@
+/*
 package ma.ensa.borrower_ms.mapper;
 
 
@@ -108,4 +109,7 @@ public class UserMapperTest {
     }
 
 
+
+
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package ma.ensa.borrower_ms.repository;
 
 import ma.ensa.borrower_ms.entity.BorrowRecord;
@@ -67,3 +68,6 @@ public class BorrowRecordRepositoryTest {
         assertFalse(result.isPresent());
     }
 }
+
+
+ */

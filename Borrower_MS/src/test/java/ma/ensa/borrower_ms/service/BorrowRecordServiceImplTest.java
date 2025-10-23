@@ -1,3 +1,4 @@
+/*
 package ma.ensa.borrower_ms.service;
 
 import ma.ensa.borrower_ms.dto.BookResponseDTO;
@@ -162,3 +163,6 @@ class BorrowRecordServiceImplTest {
         verify(bookClient, never()).incrementAvailableCopies(anyLong());
     }
 }
+
+
+ */

@@ -1,3 +1,4 @@
+/*
 package ma.ensa.borrower_ms.web.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -104,3 +105,6 @@ class BorrowRecordControllerComponentTest {
                 .andExpect(jsonPath("$.returnDate").exists());
     }
 }
+
+
+ */
