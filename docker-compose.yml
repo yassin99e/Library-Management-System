@@ -1,0 +1,314 @@
+services:
+  # ===================================
+  # INFRASTRUCTURE LAYER
+  # ===================================
+  
+  # --- MySQL Database ---
+  mysql:
+    image: mysql:8.0
+    container_name: library-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password123
+      MYSQL_DATABASE: notification_db
+      MYSQL_USER: yassine
+      MYSQL_PASSWORD: password123
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - library-network
+
+  # --- Zookeeper (Kafka dependency) ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: library-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - library-network
+
+  # --- Kafka Broker ---
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: library-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:29092"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - library-network
+
+  # ===================================
+  # SERVICE DISCOVERY & CONFIG
+  # ===================================
+
+  # --- Discovery Service (Eureka) ---
+  discovery-service:
+    build:
+      context: ./Discovery_Service
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/discovery-service:v1
+    container_name: library-discovery
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - library-network
+
+  # --- Config Service ---
+  config-service:
+    build:
+      context: ./Config_Service
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/config-service:v1
+    container_name: library-config
+    restart: unless-stopped
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    ports:
+      - "9999:9999"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - library-network
+
+  # ===================================
+  # BUSINESS MICROSERVICES
+  # ===================================
+
+  # --- Book Microservice ---
+  book-service:
+    build:
+      context: ./Book_MS
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/book-service:v1
+    container_name: library-book-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:9999
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - library-network
+
+  # --- Borrower Microservice ---
+  borrower-service:
+    build:
+      context: ./Borrower_MS
+      dockerfile: Dockerfile
+
+    image: yassin99e/library-app/borrower-service:v1
+    container_name: library-borrower-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:9999
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - library-network
+
+  # --- Notification Microservice ---
+  notification-service:
+    build:
+      context: ./Notification_MS
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/notification-service:v1
+    container_name: library-notification-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:9999
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - library-network
+
+  # ===================================
+  # API GATEWAY
+  # ===================================
+
+  # --- API Gateway ---
+  api-gateway:
+    build:
+      context: ./API-GW
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/api-gateway:v1
+    container_name: library-api-gateway
+    restart: unless-stopped
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      book-service:
+        condition: service_healthy
+      borrower-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - library-network
+
+  # ===================================
+  # FRONTEND
+  # ===================================
+
+  # --- Angular Frontend ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: yassin99e/library-app/frontend:v1
+    container_name: library-frontend
+    restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - library-network
+
+# ===================================
+# VOLUMES
+# ===================================
+volumes:
+  mysql-data:
+    driver: local
+  kafka-data:
+    driver: local
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+
+# ===================================
+# NETWORKS
+# ===================================
+networks:
+  library-network:
+    driver: bridge
+    name: library-network

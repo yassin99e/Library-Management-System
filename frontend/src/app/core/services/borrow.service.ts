@@ -4,12 +4,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BorrowRecordResponse, BorrowResponse } from '../models/models';
+import {environment} from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BorrowService {
-  private readonly API_URL = 'http://localhost:8080/borrower-ms/api/borrow';
+
+  private readonly API_URL =`${environment.apiUrl}/borrower-ms/api/borrow`;
 
   constructor(private http: HttpClient) {}
 

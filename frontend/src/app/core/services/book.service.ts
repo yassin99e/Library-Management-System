@@ -4,13 +4,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BookRequest, BookResponse } from '../models/models';
-
+import {environment} from '../../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class BookService {
-  private readonly API_URL = 'http://localhost:8080/book-ms/api/books';
-
+  private readonly API_URL =`${environment.apiUrl}/book-ms/api/books`;
   constructor(private http: HttpClient) {}
 
   // Create book (ADMIN only)

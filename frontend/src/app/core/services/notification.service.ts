@@ -5,13 +5,14 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
 import { tap, switchMap, startWith } from 'rxjs/operators';
 import { Notification, NotificationType } from '../models/models';
+import {environment} from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private readonly API_URL = 'http://localhost:8080/notification-ms/api/notifications';
 
+  private readonly API_URL =`${environment.apiUrl}/notification-ms/api/notifications`;
   // Observable pour le nombre de notifications non lues
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
