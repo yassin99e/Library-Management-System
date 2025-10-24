@@ -13,7 +13,6 @@ RUN npm ci
 COPY . .
 
 # Build the Angular application for production
-
 RUN npm run build -- --configuration docker
 
 # Runtime stage with Nginx
