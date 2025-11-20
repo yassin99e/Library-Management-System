@@ -1,0 +1,45 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  # Discovery service
+  - job_name: 'discovery-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['discovery-service:8761']
+
+  # Config service
+  - job_name: 'config-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-service:9999']
+
+  # Book MS
+  - job_name: 'book-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['book-service:8082']
+
+  # Borrower MS
+  - job_name: 'borrower-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['borrower-service:8081']
+
+  # Notification MS
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8084']
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
